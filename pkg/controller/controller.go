@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/data"
+	"time"
 
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/config"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/controller/modules"
@@ -20,7 +21,11 @@ type Controller struct {
 func NewController(config *config.Config) *Controller {
 	// Create Heating config
 	var heatingConfig []data.HeatingConfig
-	heatingConfig = append(heatingConfig, *data.NewHeatingConfig().SetName("gaetan").SetOutputCommandTopic("heating/gaetan/output").SetPwmCommandTopic("heating/gaetan/command"))
+	heatingConfig = append(heatingConfig, *data.NewHeatingConfig().
+		SetName("gaetan").
+		SetOutputCommandTopic("heating/gaetan/output").
+		SetPwmCommandTopic("heating/gaetan/command").
+		SetPwmDutyCycle(10 * time.Second))
 
 	mqttOptions := mqtt.NewClientOptions().
 		SetMqttUrl(config.Mqtt.MqttUrl).

@@ -8,7 +8,7 @@ type HeatingConfig struct {
 	PwmCommandTopic        string
 	PwmStatusTopic         string
 	OutputCommandTopic     string
-	PwmRatio               float32
+	PwmPercent             uint8
 	PwmDutyCycle           time.Duration
 }
 
@@ -19,7 +19,7 @@ func NewHeatingConfig() *HeatingConfig {
 		PwmCommandTopic:        "",
 		PwmStatusTopic:         "",
 		OutputCommandTopic:     "",
-		PwmRatio:               0.5,
+		PwmPercent:             20,
 		PwmDutyCycle:           1 * time.Hour,
 	}
 }
@@ -49,8 +49,8 @@ func (o *HeatingConfig) SetOutputCommandTopic(value string) *HeatingConfig {
 	return o
 }
 
-func (o *HeatingConfig) SetPwmRatio(value float32) *HeatingConfig {
-	o.PwmRatio = value
+func (o *HeatingConfig) SetPwmRatio(value uint8) *HeatingConfig {
+	o.PwmPercent = value
 	return o
 }
 
