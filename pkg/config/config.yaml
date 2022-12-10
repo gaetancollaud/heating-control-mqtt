@@ -1,0 +1,5 @@
+---
+# For testing purposes.
+mqtt_url: "192.168.1.2"
+mqtt_username: mqtt
+mqtt_password: "12345678"

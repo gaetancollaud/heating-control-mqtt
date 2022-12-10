@@ -1,0 +1,7 @@
+.idea/
+vendor/
+dist/
+tests/
+
+.env
+/config.yaml
