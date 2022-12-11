@@ -84,12 +84,12 @@ func (c *client) Disconnect() error {
 	return nil
 }
 
+func (c *client) PublishWithPrefix(topic string, message interface{}) error {
+	return c.Publish(path.Join(c.options.TopicPrefix, topic), message)
+}
+
 func (c *client) Publish(topic string, message interface{}) error {
-	t := c.mqttClient.Publish(
-		path.Join(c.options.TopicPrefix, topic),
-		c.options.QoS,
-		c.options.Retain,
-		message)
+	t := c.mqttClient.Publish(topic, c.options.QoS, c.options.Retain, message)
 	<-t.Done()
 	return t.Error()
 }
@@ -106,7 +106,7 @@ func (c *client) Subscribe(topic string, messageHandler mqtt.MessageHandler) err
 // Publish the current binary status into the MQTT topic.
 func (c *client) publishServerStatus(message string) error {
 	log.Info().Str("status", message).Str("topic", serverStatus).Msg("Updating server status topic")
-	return c.Publish(serverStatus, message)
+	return c.PublishWithPrefix(serverStatus, message)
 }
 
 func (c *client) ServerStatusTopic() string {

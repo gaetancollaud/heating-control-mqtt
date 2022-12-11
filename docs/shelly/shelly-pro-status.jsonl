@@ -1,0 +1,44 @@
+{
+  "id": 0,
+  "source": "init",
+  "output": false,
+  "apower": 0.0,
+  "voltage": 226.2,
+  "current": 0.000,
+  "pf": 0.00,
+  "aenergy": {
+    "total": 0.000,
+    "by_minute": [
+      0.000,
+      0.000,
+      0.000
+    ],
+    "minute_ts": 1670691299
+  },
+  "temperature": {
+    "tC": 36.1,
+    "tF": 97.0
+  }
+}
+{
+  "id": 2,
+  "source": "init",
+  "output": false,
+  "apower": 0.0,
+  "voltage": 227.4,
+  "current": 0.000,
+  "pf": 0.00,
+  "aenergy": {
+    "total": 0.000,
+    "by_minute": [
+      0.000,
+      0.000,
+      0.000
+    ],
+    "minute_ts": 1670691359
+  },
+  "temperature": {
+    "tC": 36.0,
+    "tF": 96.9
+  }
+}

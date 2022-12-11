@@ -1,17 +1,19 @@
 package pwm
 
 import (
+	"github.com/gaetancollaud/heating-control-mqtt/pkg/data"
 	"github.com/rs/zerolog/log"
 	"time"
 )
 
 type PwmListener interface {
-	On(id string)
-	Off(id string)
+	On(id string, data data.HeatingConfig)
+	Off(id string, data data.HeatingConfig)
 }
 
 type Pwm struct {
 	id       string
+	data     data.HeatingConfig
 	listener PwmListener
 
 	dutyCycle time.Duration
@@ -21,9 +23,10 @@ type Pwm struct {
 	currentCount uint8
 }
 
-func NewPwm(id string, dutyCycle time.Duration, listener PwmListener) *Pwm {
+func NewPwm[T data.HeatingConfig](id string, dutyCycle time.Duration, listener PwmListener, data data.HeatingConfig) *Pwm {
 	return &Pwm{
 		id:           id,
+		data:         data,
 		dutyCycle:    dutyCycle,
 		listener:     listener,
 		valuePercent: 0,
@@ -57,14 +60,14 @@ func (pvm *Pwm) SetValuePercent(percent uint8) {
 func (pvm *Pwm) processTick() {
 	if pvm.currentCount == 0 {
 		if pvm.valuePercent > 0 {
-			pvm.listener.On(pvm.id)
+			pvm.listener.On(pvm.id, pvm.data)
 		}
 	}
 
 	pvm.currentCount++
 
 	if pvm.currentCount == pvm.valuePercent {
-		pvm.listener.Off(pvm.id)
+		pvm.listener.Off(pvm.id, pvm.data)
 	}
 
 	if pvm.currentCount >= 100 {

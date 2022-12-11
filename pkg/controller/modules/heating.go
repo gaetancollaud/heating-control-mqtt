@@ -13,12 +13,14 @@ type HeatingModule struct {
 	heatingConfig []data.HeatingConfig
 }
 
-func (c *HeatingModule) On(id string) {
+func (c *HeatingModule) On(id string, data data.HeatingConfig) {
 	log.Info().Str("id", id).Msg("ON")
+	c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": true}")
 }
 
-func (c *HeatingModule) Off(id string) {
+func (c *HeatingModule) Off(id string, data data.HeatingConfig) {
 	log.Info().Str("id", id).Msg("OFF")
+	c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": off}")
 }
 
 func (c *HeatingModule) Start() error {
@@ -26,7 +28,7 @@ func (c *HeatingModule) Start() error {
 	// TODO subscribe to all the topics
 
 	for _, heatingConfig := range c.heatingConfig {
-		newPwm := pwm.NewPwm(heatingConfig.Name, heatingConfig.PwmDutyCycle, c)
+		newPwm := pwm.NewPwm(heatingConfig.Name, heatingConfig.PwmDutyCycle, c, heatingConfig)
 
 		// TODO listen from topic and restore
 		newPwm.SetValuePercent(heatingConfig.PwmPercent)

@@ -35,7 +35,7 @@ var defaultConfig = map[string]interface{}{
 	envKeyMqttUrl:         undefined,
 	envKeyMqttUsername:    undefined,
 	envKeyMqttPassword:    undefined,
-	envKeyMqttTopicPrefix: "heating",
+	envKeyMqttTopicPrefix: "heating-control",
 	envKeyMqttRetain:      false,
 	envKeyLogLevel:        "INFO",
 }
