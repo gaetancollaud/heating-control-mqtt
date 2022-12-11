@@ -1,0 +1,61 @@
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+builds:
+  - goos:
+      - linux
+      - windows
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+
+archives:
+  - files:
+      - README.md
+      - LICENSE
+      - config.yaml.example
+
+dockers:
+  - image_templates:
+      - "gaetancollaud/heating-control-mqtt:{{ .Version }}-amd64"
+      - "gaetancollaud/heating-control-mqtt:latest-amd64"
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    extra_files:
+      - config.yaml.example
+  - image_templates:
+      - "gaetancollaud/heating-control-mqtt:{{ .Version }}-arm"
+      - "gaetancollaud/heating-control-mqtt:latest-arm"
+    use: buildx
+    goarch: arm
+    goarm: 6
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm/v6"
+    extra_files:
+      - config.yaml.example
+  - image_templates:
+      - "gaetancollaud/heating-control-mqtt:{{ .Version }}-arm64v8"
+      - "gaetancollaud/heating-control-mqtt:latest-arm64v8"
+    use: buildx
+    goarch: arm64
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+    extra_files:
+      - config.yaml.example
+docker_manifests:
+  - name_template: gaetancollaud/heating-control-mqtt:{{ .Version }}
+    image_templates:
+      - gaetancollaud/heating-control-mqtt:{{ .Version }}-amd64
+      - gaetancollaud/heating-control-mqtt:{{ .Version }}-arm
+      - gaetancollaud/heating-control-mqtt:{{ .Version }}-arm64v8
+  - name_template: gaetancollaud/heating-control-mqtt:latest
+    image_templates:
+      - gaetancollaud/heating-control-mqtt:latest-amd64
+      - gaetancollaud/heating-control-mqtt:latest-arm
+      - gaetancollaud/heating-control-mqtt:latest-arm64v8

@@ -20,3 +20,11 @@ go install
 go run .
 ```
 
+### Go releaser
+
+Do a snapshot release
+
+```shell
+goreleaser --snapshot --skip-publish --rm-dist
+```
+

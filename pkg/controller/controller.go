@@ -23,11 +23,12 @@ func NewController(config *config.Config) *Controller {
 	var heatingConfig []data.HeatingConfig
 	heatingConfig = append(heatingConfig, *data.NewHeatingConfig().
 		SetName("gaetan").
-		SetSwitchId("3").
+		SetSwitchId("1").
 		SetOutputCommandTopic("shellies/shelly-heating-1/rpc").
 		SetPwmCommandTopic("gaetan/pwm-percent-command").
 		SetPwmStatusTopic("gaetan/pwm-percent-status").
-		SetPwmDutyCycle(10 * time.Second))
+		SetPwmDutyCycle(1 * time.Hour).
+		SetPwmPercent(50))
 
 	mqttOptions := mqtt.NewClientOptions().
 		SetMqttUrl(config.Mqtt.MqttUrl).

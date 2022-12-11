@@ -17,14 +17,14 @@ type HeatingModule struct {
 }
 
 func (c *HeatingModule) setValue(data data.HeatingConfig, on bool) {
-	log.Info().Str("name", data.Name).Bool("on", on).Msg("setValue")
+	log.Info().Str("name", data.Name).Bool("on", on).Msg("heating setValue")
 	onStr := strconv.FormatBool(on)
 	err := c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": "+onStr+"}")
 	utils.CheckNoErrorAndPrint(err)
 }
 
 func (c *HeatingModule) parsePvmCommand(pwm *pwm.Pwm, data data.HeatingConfig, input string) {
-	log.Info().Str("name", data.Name).Str("input", input).Msg("ParsePwmValue")
+	log.Info().Str("name", data.Name).Str("input", input).Msg("heating parsePwmValue")
 	i, err := strconv.ParseInt(input, 10, 32)
 	if err == nil {
 		if i > 100 {
@@ -33,10 +33,14 @@ func (c *HeatingModule) parsePvmCommand(pwm *pwm.Pwm, data data.HeatingConfig, i
 			i = 0
 		}
 		percent := uint8(i)
-		data.SetPwmRatio(percent)
+		data.SetPwmPercent(percent)
 		pwm.SetValuePercent(percent)
+
+		// publish back the status
+		err := c.mqttClient.PublishWithPrefix(data.PwmStatusTopic, strconv.Itoa(int(data.PwmPercent)))
+		utils.CheckNoErrorAndPrint(err)
 	} else {
-		log.Error().Str("input", input).Msg("Unable to parse percent")
+		log.Error().Str("input", input).Msg("heating unable to parse percent")
 	}
 }
 

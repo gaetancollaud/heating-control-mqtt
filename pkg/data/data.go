@@ -54,7 +54,7 @@ func (o *HeatingConfig) SetOutputCommandTopic(value string) *HeatingConfig {
 	return o
 }
 
-func (o *HeatingConfig) SetPwmRatio(value uint8) *HeatingConfig {
+func (o *HeatingConfig) SetPwmPercent(value uint8) *HeatingConfig {
 	o.PwmPercent = value
 	return o
 }

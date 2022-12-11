@@ -1,7 +1,7 @@
 version: '3.0'
 services:
   heating-control-mqtt:
-    image: gaetancollaud/heating-control-mqtt:dev
+    image: gaetancollaud/heating-control-mqtt:latest-amd64
     build: .
     environment:
       - MQTT_URL=tcp://mosquitto:1883

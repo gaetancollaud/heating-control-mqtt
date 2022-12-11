@@ -27,7 +27,7 @@ func NewPwm(id string, dutyCycle time.Duration, listener func(string, bool)) *Pw
 }
 
 func (pvm *Pwm) Start() {
-	log.Info().Str("id", pvm.id).Dur("dutyCycle", pvm.dutyCycle).Msg("pwm start")
+	log.Debug().Str("id", pvm.id).Dur("dutyCycle", pvm.dutyCycle).Msg("pwm start")
 	pvm.ticker = time.NewTicker(pvm.dutyCycle / 100)
 	go func() {
 		for {
@@ -40,12 +40,12 @@ func (pvm *Pwm) Start() {
 }
 
 func (pvm *Pwm) Stop() {
-	log.Info().Str("id", pvm.id).Msg("pwm stop")
+	log.Debug().Str("id", pvm.id).Msg("pwm stop")
 	pvm.ticker.Stop()
 }
 
 func (pvm *Pwm) SetValuePercent(percent uint8) {
-	log.Info().Str("id", pvm.id).Uint8("percent", percent).Msg("pwm set value")
+	log.Debug().Str("id", pvm.id).Uint8("percent", percent).Msg("pwm set value")
 	if percent == 100 || pvm.currentCount < percent {
 		// set to on
 		pvm.listener(pvm.id, true)
