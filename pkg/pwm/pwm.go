@@ -1,20 +1,13 @@
 package pwm
 
 import (
-	"github.com/gaetancollaud/heating-control-mqtt/pkg/data"
 	"github.com/rs/zerolog/log"
 	"time"
 )
 
-type PwmListener interface {
-	On(id string, data data.HeatingConfig)
-	Off(id string, data data.HeatingConfig)
-}
-
 type Pwm struct {
 	id       string
-	data     data.HeatingConfig
-	listener PwmListener
+	listener func(string, bool)
 
 	dutyCycle time.Duration
 	ticker    *time.Ticker
@@ -23,10 +16,9 @@ type Pwm struct {
 	currentCount uint8
 }
 
-func NewPwm[T data.HeatingConfig](id string, dutyCycle time.Duration, listener PwmListener, data data.HeatingConfig) *Pwm {
+func NewPwm(id string, dutyCycle time.Duration, listener func(string, bool)) *Pwm {
 	return &Pwm{
 		id:           id,
-		data:         data,
 		dutyCycle:    dutyCycle,
 		listener:     listener,
 		valuePercent: 0,
@@ -35,7 +27,7 @@ func NewPwm[T data.HeatingConfig](id string, dutyCycle time.Duration, listener P
 }
 
 func (pvm *Pwm) Start() {
-	log.Info().Str("id", pvm.id).Dur("dutyCycle", pvm.dutyCycle).Msg("Start")
+	log.Info().Str("id", pvm.id).Dur("dutyCycle", pvm.dutyCycle).Msg("pwm start")
 	pvm.ticker = time.NewTicker(pvm.dutyCycle / 100)
 	go func() {
 		for {
@@ -48,26 +40,31 @@ func (pvm *Pwm) Start() {
 }
 
 func (pvm *Pwm) Stop() {
-	log.Info().Str("id", pvm.id).Msg("Stop")
+	log.Info().Str("id", pvm.id).Msg("pwm stop")
 	pvm.ticker.Stop()
 }
 
 func (pvm *Pwm) SetValuePercent(percent uint8) {
-	log.Info().Str("id", pvm.id).Uint8("percent", percent).Msg("Set value")
+	log.Info().Str("id", pvm.id).Uint8("percent", percent).Msg("pwm set value")
+	if percent == 100 || pvm.currentCount < percent {
+		// set to on
+		pvm.listener(pvm.id, true)
+	} else if percent == 0 || percent < pvm.currentCount {
+		// set to off
+		pvm.listener(pvm.id, false)
+	}
 	pvm.valuePercent = percent
 }
 
 func (pvm *Pwm) processTick() {
-	if pvm.currentCount == 0 {
-		if pvm.valuePercent > 0 {
-			pvm.listener.On(pvm.id, pvm.data)
-		}
+	if pvm.currentCount == 0 && pvm.valuePercent > 0 {
+		pvm.listener(pvm.id, true)
 	}
 
 	pvm.currentCount++
 
-	if pvm.currentCount == pvm.valuePercent {
-		pvm.listener.Off(pvm.id, pvm.data)
+	if pvm.currentCount == pvm.valuePercent && pvm.valuePercent < 100 {
+		pvm.listener(pvm.id, false)
 	}
 
 	if pvm.currentCount >= 100 {

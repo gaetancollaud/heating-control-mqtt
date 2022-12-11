@@ -25,7 +25,8 @@ func NewController(config *config.Config) *Controller {
 		SetName("gaetan").
 		SetSwitchId("3").
 		SetOutputCommandTopic("shellies/shelly-heating-1/rpc").
-		//SetPwmCommandTopic("heating/gaetan/command").
+		SetPwmCommandTopic("gaetan/pwm-percent-command").
+		SetPwmStatusTopic("gaetan/pwm-percent-status").
 		SetPwmDutyCycle(10 * time.Second))
 
 	mqttOptions := mqtt.NewClientOptions().

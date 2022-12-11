@@ -1,11 +1,14 @@
 package modules
 
 import (
+	mqtt2 "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/config"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/data"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/mqtt"
 	"github.com/gaetancollaud/heating-control-mqtt/pkg/pwm"
+	"github.com/gaetancollaud/heating-control-mqtt/pkg/utils"
 	"github.com/rs/zerolog/log"
+	"strconv"
 )
 
 type HeatingModule struct {
@@ -13,14 +16,28 @@ type HeatingModule struct {
 	heatingConfig []data.HeatingConfig
 }
 
-func (c *HeatingModule) On(id string, data data.HeatingConfig) {
-	log.Info().Str("id", id).Msg("ON")
-	c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": true}")
+func (c *HeatingModule) setValue(data data.HeatingConfig, on bool) {
+	log.Info().Str("name", data.Name).Bool("on", on).Msg("setValue")
+	onStr := strconv.FormatBool(on)
+	err := c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": "+onStr+"}")
+	utils.CheckNoErrorAndPrint(err)
 }
 
-func (c *HeatingModule) Off(id string, data data.HeatingConfig) {
-	log.Info().Str("id", id).Msg("OFF")
-	c.mqttClient.Publish(data.OutputCommandTopic, "{\"id\":1,\"src\":\"heating-control\",\"method\":\"Switch.Set\",\"params\": {\"id\": "+data.SwitchId+",\"on\": off}")
+func (c *HeatingModule) parsePvmCommand(pwm *pwm.Pwm, data data.HeatingConfig, input string) {
+	log.Info().Str("name", data.Name).Str("input", input).Msg("ParsePwmValue")
+	i, err := strconv.ParseInt(input, 10, 32)
+	if err == nil {
+		if i > 100 {
+			i = 100
+		} else if i < 0 {
+			i = 0
+		}
+		percent := uint8(i)
+		data.SetPwmRatio(percent)
+		pwm.SetValuePercent(percent)
+	} else {
+		log.Error().Str("input", input).Msg("Unable to parse percent")
+	}
 }
 
 func (c *HeatingModule) Start() error {
@@ -28,12 +45,20 @@ func (c *HeatingModule) Start() error {
 	// TODO subscribe to all the topics
 
 	for _, heatingConfig := range c.heatingConfig {
-		newPwm := pwm.NewPwm(heatingConfig.Name, heatingConfig.PwmDutyCycle, c, heatingConfig)
+		pwm := pwm.NewPwm(heatingConfig.Name, heatingConfig.PwmDutyCycle, func(id string, status bool) {
+			c.setValue(heatingConfig, status)
+		})
 
-		// TODO listen from topic and restore
-		newPwm.SetValuePercent(heatingConfig.PwmPercent)
+		pwm.SetValuePercent(heatingConfig.PwmPercent)
 
-		newPwm.Start()
+		err := c.mqttClient.PublishWithPrefix(heatingConfig.PwmStatusTopic, strconv.Itoa(int(heatingConfig.PwmPercent)))
+		utils.CheckNoErrorAndPrint(err)
+
+		c.mqttClient.SubscribeWithPrefix(heatingConfig.PwmCommandTopic, func(client mqtt2.Client, message mqtt2.Message) {
+			c.parsePvmCommand(pwm, heatingConfig, string(message.Payload()))
+		})
+
+		pwm.Start()
 	}
 
 	return nil

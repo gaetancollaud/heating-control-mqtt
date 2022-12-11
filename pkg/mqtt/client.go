@@ -29,10 +29,11 @@ type Client interface {
 	Disconnect() error
 
 	// Publishes a message under the prefix topic
+	PublishWithPrefix(topic string, message interface{}) error
 	Publish(topic string, message interface{}) error
 	// Subscribe to a topic and calls the given handler when a message is
 	// received.
-	Subscribe(topic string, messageHandler mqtt.MessageHandler) error
+	SubscribeWithPrefix(topic string, messageHandler mqtt.MessageHandler) error
 
 	// Return the full topic for a given subpath.
 	GetFullTopic(topic string) string
@@ -89,12 +90,16 @@ func (c *client) PublishWithPrefix(topic string, message interface{}) error {
 }
 
 func (c *client) Publish(topic string, message interface{}) error {
-	t := c.mqttClient.Publish(topic, c.options.QoS, c.options.Retain, message)
+	t := c.mqttClient.Publish(
+		topic,
+		c.options.QoS,
+		c.options.Retain,
+		message)
 	<-t.Done()
 	return t.Error()
 }
 
-func (c *client) Subscribe(topic string, messageHandler mqtt.MessageHandler) error {
+func (c *client) SubscribeWithPrefix(topic string, messageHandler mqtt.MessageHandler) error {
 	t := c.mqttClient.Subscribe(
 		path.Join(c.options.TopicPrefix, topic),
 		c.options.QoS,

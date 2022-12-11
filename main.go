@@ -43,7 +43,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Error on starting the controller")
 	}
 
-	// Subscribe for interruption happening during execution.
+	// SubscribeWithPrefix for interruption happening during execution.
 	exitSignal := make(chan os.Signal, 2)
 	signal.Notify(exitSignal, os.Interrupt, syscall.SIGTERM)
 	<-exitSignal
